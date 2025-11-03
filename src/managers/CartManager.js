@@ -5,7 +5,7 @@ export default class CartManager {
     this.path = path;
   }
 
-  async #readFile() {
+  async getCarts() {
     try {
       const data = await fs.readFile(this.path, "utf-8");
       return JSON.parse(data || "[]");
@@ -14,26 +14,23 @@ export default class CartManager {
     }
   }
 
-  async #writeFile(data) {
-    await fs.writeFile(this.path, JSON.stringify(data, null, 2));
-  }
-
   async createCart() {
-    const carts = await this.#readFile();
+    const carts = await this.getCarts();
     const id = carts.length ? carts[carts.length - 1].id + 1 : 1;
     const newCart = { id, products: [] };
     carts.push(newCart);
-    await this.#writeFile(carts);
+
+    await fs.writeFile(this.path, JSON.stringify(carts, null, 2));
     return newCart;
   }
 
   async getCartById(cid) {
-    const carts = await this.#readFile();
+    const carts = await this.getCarts();
     return carts.find((c) => c.id === cid);
   }
 
   async addProductToCart(cid, pid) {
-    const carts = await this.#readFile();
+    const carts = await this.getCarts();
     const cartIndex = carts.findIndex((c) => c.id === cid);
     if (cartIndex === -1) return null;
 
@@ -47,7 +44,7 @@ export default class CartManager {
     }
 
     carts[cartIndex] = cart;
-    await this.#writeFile(carts);
+    await fs.writeFile(this.path, JSON.stringify(carts, null, 2));
     return cart;
   }
 }
