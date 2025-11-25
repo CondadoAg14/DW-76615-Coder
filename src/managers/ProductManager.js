@@ -21,6 +21,12 @@ export default class ProductManager {
 
   async addProduct(product) {
     const products = await this.getProducts();
+
+    
+    if (products.some((p) => p.code === product.code)) {
+      throw new Error("El código del producto ya existe");
+    }
+
     const id = products.length ? products[products.length - 1].id + 1 : 1;
 
     const newProduct = { id, ...product, status: true };
@@ -42,7 +48,11 @@ export default class ProductManager {
 
   async deleteProduct(id) {
     const products = await this.getProducts();
-    const filtered = products.filter((p) => p.id !== id);
-    await fs.writeFile(this.path, JSON.stringify(filtered, null, 2));
+    const index = products.findIndex((p) => p.id === id);
+    if (index === -1) return false;
+
+    products.splice(index, 1);
+    await fs.writeFile(this.path, JSON.stringify(products, null, 2));
+    return true;
   }
 }
